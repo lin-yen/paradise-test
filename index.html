@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .main {
+      display: inline-block;
+      position: relative;
+      width: 250px;
+    }
+
+    #loading {
+      display: block;
+    }
+
+    #searchInput {
+      display: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #list {
+      position: absolute;
+      max-height: 150px;
+      overflow-y: scroll;
+      width: 100%;
+    }
+
+    .listItem {
+      border: black 1px solid;
+      border-top: none;
+      padding: 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="main">
+    <div id="loading">loading...</div>
+    <input id="searchInput" />
+    <div id="list"></div>
+  </div>
+  <script>
+    const loading = document.getElementById("loading");
+    const input = document.getElementById("searchInput");
+    const list = document.getElementById("list");
+    const country = [];
+
+    function handleClick(e) {
+      if (e) {
+        input.value = e;
+        list.innerHTML = '';
+      }
+    }
+
+    function updateValue(e) {
+      const re = new RegExp(e.target.value, 'i');
+      const matchCountry = country.filter((item) => {
+        if (re.exec(item)) {
+          return true;
+        } else {
+          let name = item.toLowerCase();
+          let count = 0;
+          let i = 0;
+
+          while(i < e.target.value.length) {
+            const charIndex = name.indexOf(e.target.value[i].toLowerCase())
+
+            if (charIndex > -1) {
+              name = name.slice(charIndex + 1);
+              count += 1;
+              i += 1;
+            } else {
+              i = e.target.value.length
+            }          
+          }
+
+          return count === e.target.value.length;
+        }
+      });
+
+      if (matchCountry.length === country.length) {
+        list.innerHTML = '';
+        return;
+      }
+
+      const doms = matchCountry.map((item) => `<div class="listItem" onClick="handleClick('${item}')">${item}</div>`);
+
+      list.innerHTML = doms.join('');
+    }
+
+    fetch('https://restcountries.com/v3.1/all?fields=name').then(async (res) => {
+      const data = await res.json();
+
+      for(let i = 0; i < data.length; i++) {
+        country.push(data[i].name.common);
+      }
+
+      loading.style.display = 'none';
+
+      input.style.display = 'block';
+    })
+
+    input.addEventListener("input", updateValue);
+
+  </script>
+</body>
+</html>
